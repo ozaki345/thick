@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>管徑壁厚估算：由外周長推算</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#e8edf0;--surface:#f7f9fa;--ink:#13222c;--muted:#52656f;--line:#c5d0d6;--accent:#0b6b8a;--accent-ink:#fff;--ok:#1f7a4d;--warn:#a85a12;--bad:#a8321f;--wall:#2b3f4b;--water:#cfe6ef;--scale:#b08a5a;--hl:#d9ecf3;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a21;--surface:#172630;--ink:#e4edf1;--muted:#93a8b3;--line:#2b404c;--accent:#5cc0e0;--accent-ink:#06222d;--ok:#5fd09a;--warn:#f0a24f;--bad:#f08a78;--wall:#9fb6c2;--water:#0f1a21;--scale:#8a6a42;--hl:#1d3340;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1a21;--surface:#172630;--ink:#e4edf1;--muted:#93a8b3;--line:#2b404c;--accent:#5cc0e0;--accent-ink:#06222d;--ok:#5fd09a;--warn:#f0a24f;--bad:#f08a78;--wall:#9fb6c2;--water:#0f1a21;--scale:#8a6a42;--hl:#1d3340;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.6;font-variant-numeric:tabular-nums}
+main{max-width:760px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.4rem;margin:0 0 4px;font-weight:700}
+.sub{color:var(--muted);margin:0 0 18px;font-size:.92rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+label{display:block;font-weight:500;font-size:.9rem;margin-bottom:4px}
+.hint{color:var(--muted);font-size:.8rem;font-weight:400}
+input,select{width:100%;font:inherit;font-size:1.05rem;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#c{font-size:1.6rem;font-weight:700;padding:12px 14px}
+details{margin-top:14px}
+summary{cursor:pointer;font-weight:500;color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.read{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.read svg{width:132px;height:132px;flex:none}
+.big{font-size:2.4rem;font-weight:700;line-height:1.1}
+.big small{font-size:1rem;font-weight:400;color:var(--muted)}
+.chip{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.82rem;font-weight:500;border:1.5px solid currentColor}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:10px 0 0;font-size:.95rem}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:500}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500;font-size:.82rem}
+tr.sel td{background:var(--hl);font-weight:700}
+tr.near td{background:var(--hl)}
+td button{font:inherit;color:var(--accent);background:none;border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer;min-width:84px;text-align:left}
+tr.sel td button{border-color:var(--accent);font-weight:700}
+.note{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.act{margin-top:12px;font:inherit;background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:9px 16px;cursor:pointer;font-weight:500}
+.empty{color:var(--muted);text-align:center;padding:26px 8px}
+h2{font-size:1.02rem;margin:0 0 8px}
+</style>
+</head>
+<body>
+<main>
+<h1>外周長 → 管徑與壁厚估算</h1>
+<p class="sub">用 π 尺量到的外周長，換算外徑並對照 ASME B36.10 碳鋼管表。壁厚無法由周長直接得知，請搭配 UT 測厚校核。</p>
+
+<section class="card">
+  <label for="c">外周長 <span class="hint">mm，量到裸金屬面</span></label>
+  <input id="c" type="number" inputmode="decimal" step="0.1" min="0" placeholder="例如 1285" autofocus>
+  <div style="margin-top:12px"><label for="mode">管種規格</label><select id="mode"><option value="sgp">SGP（JIS G3452，台灣常用）</option><option value="asme">ASME B36.10（STPG 壁厚同 SCH）</option></select></div>
+  <details>
+    <summary>進階設定（選填）</summary>
+    <div class="grid">
+      <div><label for="coat">外覆層厚度 <span class="hint">mm，單邊</span></label><input id="coat" type="number" inputmode="decimal" step="0.1" min="0" value="0"></div>
+      <div><label for="ut">壁厚 <span class="hint">mm，UT 實測或假設值</span></label><input id="ut" type="number" inputmode="decimal" step="0.01" min="0" placeholder="空白＝用下表所選"></div>
+      <div><label for="scale">內壁垢層厚度 <span class="hint">mm，估計值</span></label><input id="scale" type="number" inputmode="decimal" step="0.1" min="0" value="0"></div>
+    </div>
+  </details>
+</section>
+
+<section class="card" id="out"><div class="empty">輸入外周長後，這裡會顯示外徑、管徑規格與可能的壁厚。</div></section>
+<section class="card" id="tbl" hidden></section>
+
+<p class="note">標準表值為標稱壁厚（製造公差約 −12.5%）。SGP 依 JIS G3452，125A～300A 的外徑與 ASME 不同。大口徑捲板管常為非標準外徑，以實測外徑為準。夾式流量計請以 UT 實測壁厚輸入主機。</p>
+</main>
+<script>
+// [label, wall mm]；STD/40 等同值合併顯示
+const P=[
+{n:'2"',od:60.3,s:[['10',2.77],['STD/40',3.91],['XS/80',5.54],['160',8.74]]},
+{n:'2.5"',od:73.0,s:[['10',3.05],['STD/40',5.16],['XS/80',7.01],['160',9.53]]},
+{n:'3"',od:88.9,s:[['10',3.05],['STD/40',5.49],['XS/80',7.62],['160',11.13]]},
+{n:'4"',od:114.3,s:[['10',3.05],['STD/40',6.02],['XS/80',8.56],['120',11.13],['160',13.49]]},
+{n:'5"',od:141.3,s:[['10',3.40],['STD/40',6.55],['XS/80',9.53],['120',12.70],['160',15.88]]},
+{n:'6"',od:168.3,s:[['10',3.40],['STD/40',7.11],['XS/80',10.97],['120',14.27],['160',18.26]]},
+{n:'8"',od:219.1,s:[['10',3.76],['20',6.35],['30',7.04],['STD/40',8.18],['60',10.31],['XS/80',12.70],['100',15.09],['120',18.26],['140',20.62],['160',23.01]]},
+{n:'10"',od:273.1,s:[['10',4.19],['20',6.35],['30',7.80],['STD/40',9.27],['XS/60',12.70],['80',15.09],['100',18.26],['120',21.44],['140',25.40],['160',28.58]]},
+{n:'12"',od:323.9,s:[['10',4.57],['20',6.35],['30',8.38],['STD',9.53],['40',10.31],['XS',12.70],['60',14.27],['80',17.48],['100',21.44],['120',25.40],['140',28.58],['160',33.32]]},
+{n:'14"',od:355.6,s:[['10',6.35],['20',7.92],['STD/30',9.53],['40',11.13],['XS',12.70],['60',15.09],['80',19.05],['100',23.83],['120',27.76],['140',31.75],['160',35.71]]},
+{n:'16"',od:406.4,s:[['10',6.35],['20',7.92],['STD/30',9.53],['XS/40',12.70],['60',16.66],['80',21.44],['100',26.19],['120',30.96],['140',36.53],['160',40.49]]},
+{n:'18"',od:457.2,s:[['10',6.35],['20',7.92],['STD',9.53],['30',11.13],['XS',12.70],['40',14.27],['60',19.05],['80',23.83],['100',29.36],['120',34.93],['140',39.67],['160',45.24]]},
+{n:'20"',od:508.0,s:[['10',6.35],['STD/20',9.53],['XS/30',12.70],['40',15.09],['60',20.62],['80',26.19],['100',32.54],['120',38.10],['140',44.45],['160',50.01]]},
+{n:'24"',od:609.6,s:[['10',6.35],['STD/20',9.53],['XS',12.70],['30',14.27],['40',17.48],['60',24.61],['80',30.96],['100',38.89],['120',46.02],['140',52.37],['160',59.54]]},
+{n:'30"',od:762.0,s:[['10',7.92],['STD',9.53],['XS/20',12.70],['30',15.88]]},
+{n:'36"',od:914.4,s:[['10',7.92],['STD',9.53],['XS/20',12.70],['30',15.88],['40',19.05]]}
+];
+const SGPD=[['6A (1/8")',10.5,2.0],['8A (1/4")',13.8,2.3],['10A (3/8")',17.3,2.3],['15A (1/2")',21.7,2.8],['20A (3/4")',27.2,2.8],['25A (1")',34.0,3.2],['32A (1-1/4")',42.7,3.5],['40A (1-1/2")',48.6,3.5],['50A (2")',60.5,3.8],['65A (2-1/2")',76.3,4.2],['80A (3")',89.1,4.2],['90A (3-1/2")',101.6,4.2],['100A (4")',114.3,4.5],['125A (5")',139.8,4.5],['150A (6")',165.2,5.0],['175A (7")',190.7,5.3],['200A (8")',216.3,5.8],['225A (9")',241.8,6.2],['250A (10")',267.4,6.6],['300A (12")',318.5,6.9],['350A (14")',355.6,7.9],['400A (16")',406.4,7.9],['450A (18")',457.2,7.9],['500A (20")',508.0,7.9],['550A (22")',558.8,8.7],['600A (24")',609.6,9.5]];
+const $=id=>document.getElementById(id);
+const sl=x=>x==='SGP'?'SGP':'SCH '+x;
+function cur(){return $('mode').value==='asme'?P.map(p=>({...p,n:'NPS '+p.n})):SGPD.map(([n,od,t])=>({n,od,s:[['SGP',t]]}))}
+const num=id=>{const v=parseFloat($(id).value);return isNaN(v)?NaN:v};
+let selKey=null;
+
+function render(){
+  const C=num('c'),coat=num('coat')||0,scale=num('scale')||0,ut=num('ut');
+  const out=$('out'),tbl=$('tbl');
+  if(!(C>0)){out.innerHTML='<div class="empty">輸入外周長後，這裡會顯示外徑、管徑規格與可能的壁厚。</div>';tbl.hidden=true;return}
+  const odm=C/Math.PI-2*coat;
+  if(!(odm>0)){out.innerHTML='<div class="empty">外覆層厚度過大，請檢查輸入。</div>';tbl.hidden=true;return}
+  let best=null;
+  for(const p of cur()){const d=(odm-p.od)/p.od*100;if(!best||Math.abs(d)<Math.abs(best.d))best={p,d}}
+  const p=best.p,dev=best.d,ad=Math.abs(dev);
+  const lvl=ad<=0.5?'ok':ad<=1?'warn':'bad';
+  const msg={ok:'符合標準外徑',warn:'接近標準外徑，可能含公差或橢圓度',bad:'偏離標準外徑，可能為捲板管或非標管'}[lvl];
+  const odUse=ad<=1?p.od:odm; // 吻合標準時採標稱外徑
+  // 預設列
+  if(!selKey||!selKey.startsWith(p.n+'|')){const d=p.s.find(r=>r[0].includes('STD'))||p.s[1]||p.s[0];selKey=p.n+'|'+d[0]}
+  const rows=p.s;
+  let t,src,nearIdx=-1;
+  if(ut>0){t=ut;src='輸入壁厚';let m=1e9;rows.forEach((r,i)=>{const d=Math.abs(r[1]-ut);if(d<m){m=d;nearIdx=i}})}
+  else{const r=rows.find(r=>p.n+'|'+r[0]===selKey)||rows[0];t=r[1];src='表列 '+sl(r[0])}
+  const idOf=w=>odUse-2*w-2*scale;
+  const area=w=>{const d=idOf(w);return d>0?Math.PI/4*d*d/100:NaN};
+  const id=idOf(t),A=area(t);
+  if(!(id>0)){out.innerHTML='<div class="empty">壁厚與垢層合計超過半徑，請檢查輸入。</div>';tbl.hidden=true;return}
+  // 鄰近壁厚的截面積差
+  const ts=[...new Set(rows.map(r=>r[1]))].sort((a,b)=>a-b);
+  const lo=[...ts].reverse().find(x=>x<t-0.005),hi=ts.find(x=>x>t+0.005);
+  const pc=w=>{const a=area(w);return isNaN(a)?'—':((a/A-1)*100>=0?'+':'−')+Math.abs((a/A-1)*100).toFixed(1)+'%'};
+  const nearTxt=ut>0?`最接近 ${sl(rows[nearIdx][0])}（${rows[nearIdx][1].toFixed(2)} mm），差 ${Math.abs(rows[nearIdx][1]-ut).toFixed(2)} mm`:'';
+  // 剖面圖
+  const R=odUse/2,k=54/R,rid=Math.max((R-t)*k,0),rs=Math.max((R-t-scale)*k,0);
+  const svg=`<svg viewBox="0 0 120 120" role="img" aria-label="管剖面示意"><circle cx="60" cy="60" r="54" fill="var(--wall)"/><circle cx="60" cy="60" r="${rid.toFixed(2)}" fill="${scale>0?'var(--scale)':'var(--water)'}"/>${scale>0?`<circle cx="60" cy="60" r="${rs.toFixed(2)}" fill="var(--water)"/>`:''}</svg>`;
+  out.innerHTML=`<div class="read">${svg}<div>
+    <div class="big">${odm.toFixed(1)} <small>mm 外徑</small></div>
+    <div style="margin-top:6px"><span class="chip ${lvl}">${msg}</span></div>
+    <div class="note" style="margin-top:6px">最接近 ${p.n}（標稱 OD ${p.od} mm，差 ${dev>=0?'+':'−'}${ad.toFixed(2)}%）</div></div></div>
+    <dl class="kv">
+    <dt>壁厚 t</dt><dd>${t.toFixed(2)} mm（${src}）${nearTxt?'<br><span class="hint">'+nearTxt+'</span>':''}</dd>
+    <dt>內徑 ID</dt><dd>${id.toFixed(1)} mm${scale>0?'（已扣垢層 '+scale+' mm）':''}</dd>
+    <dt>流通截面積</dt><dd>${A.toFixed(1)} cm²</dd>
+    <dt>若壁厚判斷錯一級</dt><dd>${lo?`t=${lo.toFixed(2)}：${pc(lo)}`:'—'}　${hi?`t=${hi.toFixed(2)}：${pc(hi)}`:''}</dd>
+    <dt>計算採用外徑</dt><dd>${odUse.toFixed(1)} mm（${ad<=1?'標稱值':'實測值'}）</dd></dl>
+    ${lvl==='bad'?'<p class="note">外徑不在標準管表內，下表僅供參考。建議直接輸入 UT 實測壁厚。</p>':''}
+    <button class="act" id="cp">複製記錄</button>`;
+  $('cp').onclick=async()=>{
+    const s=`外周長 ${C} mm；外徑 ${odm.toFixed(1)} mm；${p.n}（${msg}）；壁厚 ${t.toFixed(2)} mm（${src}）；內徑 ${id.toFixed(1)} mm；截面積 ${A.toFixed(1)} cm²`;
+    try{await navigator.clipboard.writeText(s);$('cp').textContent='已複製'}catch(e){$('cp').textContent='無法複製，請手動記錄'}
+  };
+  // 表格
+  tbl.hidden=false;
+  tbl.innerHTML=`<h2>${p.n} 標準壁厚（OD ${p.od} mm）</h2><div class="tw"><table><thead><tr><th>SCH</th><th>壁厚 mm</th><th>內徑 mm</th><th>截面積 cm²</th><th>面積差</th></tr></thead><tbody>${
+    rows.map((r,i)=>{const a=area(r[1]);const isSel=ut>0?false:(p.n+'|'+r[0]===selKey);
+    return `<tr class="${isSel?'sel':''}${i===nearIdx?' near':''}"><td><button data-k="${p.n}|${r[0]}" aria-pressed="${isSel}">${r[0]}</button></td><td>${r[1].toFixed(2)}</td><td>${isNaN(a)?'—':idOf(r[1]).toFixed(1)}</td><td>${isNaN(a)?'—':a.toFixed(1)}</td><td>${isNaN(a)?'—':pc(r[1])}</td></tr>`}).join('')
+  }</tbody></table></div><p class="note">點選 SCH 可切換假設壁厚；「面積差」以目前壁厚為基準。</p>`;
+  tbl.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>{selKey=b.dataset.k;$('ut').value='';render()});
+}
+['c','coat','ut','scale','mode'].forEach(i=>$(i).addEventListener('input',render));
+</script>
+</body>
+</html>
