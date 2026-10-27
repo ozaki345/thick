@@ -1,160 +1,60 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>管徑壁厚估算：由外周長推算</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>台股日線篩選｜風險報酬排序</title>
 <style>
-:root{--bg:#e8edf0;--surface:#f7f9fa;--ink:#13222c;--muted:#52656f;--line:#c5d0d6;--accent:#0b6b8a;--accent-ink:#fff;--ok:#1f7a4d;--warn:#a85a12;--bad:#a8321f;--wall:#2b3f4b;--water:#cfe6ef;--scale:#b08a5a;--hl:#d9ecf3;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a21;--surface:#172630;--ink:#e4edf1;--muted:#93a8b3;--line:#2b404c;--accent:#5cc0e0;--accent-ink:#06222d;--ok:#5fd09a;--warn:#f0a24f;--bad:#f08a78;--wall:#9fb6c2;--water:#0f1a21;--scale:#8a6a42;--hl:#1d3340;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0f1a21;--surface:#172630;--ink:#e4edf1;--muted:#93a8b3;--line:#2b404c;--accent:#5cc0e0;--accent-ink:#06222d;--ok:#5fd09a;--warn:#f0a24f;--bad:#f08a78;--wall:#9fb6c2;--water:#0f1a21;--scale:#8a6a42;--hl:#1d3340;color-scheme:dark}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.6;font-variant-numeric:tabular-nums}
-main{max-width:760px;margin:0 auto;padding:20px 16px 40px}
-h1{font-size:1.4rem;margin:0 0 4px;font-weight:700}
-.sub{color:var(--muted);margin:0 0 18px;font-size:.92rem}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
-label{display:block;font-weight:500;font-size:.9rem;margin-bottom:4px}
-.hint{color:var(--muted);font-size:.8rem;font-weight:400}
-input,select{width:100%;font:inherit;font-size:1.05rem;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
-input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-#c{font-size:1.6rem;font-weight:700;padding:12px 14px}
-details{margin-top:14px}
-summary{cursor:pointer;font-weight:500;color:var(--accent)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
-.read{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-.read svg{width:132px;height:132px;flex:none}
-.big{font-size:2.4rem;font-weight:700;line-height:1.1}
-.big small{font-size:1rem;font-weight:400;color:var(--muted)}
-.chip{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.82rem;font-weight:500;border:1.5px solid currentColor}
-.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:10px 0 0;font-size:.95rem}
-.kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:500}
-.tw{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:.92rem}
-th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-th{color:var(--muted);font-weight:500;font-size:.82rem}
-tr.sel td{background:var(--hl);font-weight:700}
-tr.near td{background:var(--hl)}
-td button{font:inherit;color:var(--accent);background:none;border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer;min-width:84px;text-align:left}
-tr.sel td button{border-color:var(--accent);font-weight:700}
-.note{font-size:.85rem;color:var(--muted);margin:10px 0 0}
-.act{margin-top:12px;font:inherit;background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:9px 16px;cursor:pointer;font-weight:500}
-.empty{color:var(--muted);text-align:center;padding:26px 8px}
-h2{font-size:1.02rem;margin:0 0 8px}
+:root{color-scheme:light;--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#64748b;--line:#dbe3ee;--blue:#164e8a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif}
+header{background:linear-gradient(120deg,#12345a,#1766a6);color:#fff;padding:28px 20px}
+.wrap{max-width:1400px;margin:auto;padding:0 16px}h1{font-size:clamp(23px,3vw,34px);margin:0 0 8px}header p{margin:0;color:#dbeafe}
+main{padding:20px 0 40px}.note{background:#fff7df;border:1px solid #f3d58a;padding:12px 14px;border-radius:12px;margin-bottom:16px;font-size:14px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat{background:var(--card);padding:16px;border:1px solid var(--line);border-radius:14px}.stat small{color:var(--muted)}.stat strong{display:block;font-size:26px;margin-top:4px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;background:var(--card);padding:14px;border:1px solid var(--line);border-radius:14px;margin-bottom:12px}
+input,select,button{font:inherit;border:1px solid #cbd5e1;border-radius:9px;padding:10px 12px;background:#fff;color:var(--ink)}input{flex:1;min-width:220px}button{cursor:pointer;background:#e8f1fb}
+.tablebox{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}.tablehead{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--muted);font-size:13px}
+.scroll{overflow:auto;max-height:70vh}table{border-collapse:separate;border-spacing:0;width:100%;font-size:14px;white-space:nowrap}th,td{padding:10px 12px;border-bottom:1px solid #edf1f6;text-align:right}th{position:sticky;top:0;background:#eaf1f8;z-index:1;cursor:pointer;color:#183957}td:nth-child(2),td:nth-child(3),td:nth-child(4),th:nth-child(2),th:nth-child(3),th:nth-child(4){text-align:left}tbody tr:hover{background:#f5f9ff}.status{display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;background:#e2e8f0}.status.進場{background:#dcfce7;color:#166534}.status.R不足{background:#ffedd5;color:#9a3412}.status.觀察{background:#dbeafe;color:#1d4ed8}.status.停損過寬{background:#fee2e2;color:#991b1b}.positive{color:#15803d}.negative{color:#b91c1c}.foot{color:var(--muted);font-size:12px;margin-top:14px;line-height:1.6}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat strong{font-size:22px}.wrap{padding:0 10px}header{padding:22px 14px}}
 </style>
 </head>
 <body>
-<main>
-<h1>外周長 → 管徑與壁厚估算</h1>
-<p class="sub">用 π 尺量到的外周長，換算外徑並對照 ASME B36.10 碳鋼管表。壁厚無法由周長直接得知，請搭配 UT 測厚校核。</p>
-
-<section class="card">
-  <label for="c">外周長 <span class="hint">mm，量到裸金屬面</span></label>
-  <input id="c" type="number" inputmode="decimal" step="0.1" min="0" placeholder="例如 1285" autofocus>
-  <div style="margin-top:12px"><label for="mode">管種規格</label><select id="mode"><option value="sgp">SGP（JIS G3452，台灣常用）</option><option value="asme">ASME B36.10（STPG 壁厚同 SCH）</option></select></div>
-  <details>
-    <summary>進階設定（選填）</summary>
-    <div class="grid">
-      <div><label for="coat">外覆層厚度 <span class="hint">mm，單邊</span></label><input id="coat" type="number" inputmode="decimal" step="0.1" min="0" value="0"></div>
-      <div><label for="ut">壁厚 <span class="hint">mm，UT 實測或假設值</span></label><input id="ut" type="number" inputmode="decimal" step="0.01" min="0" placeholder="空白＝用下表所選"></div>
-      <div><label for="scale">內壁垢層厚度 <span class="hint">mm，估計值</span></label><input id="scale" type="number" inputmode="decimal" step="0.1" min="0" value="0"></div>
-    </div>
-  </details>
+<header><div class="wrap"><h1>台股日線篩選</h1><p>2026/10/27 嚴格篩選｜預設依第一目標風險報酬比 R1 由高至低</p></div></header>
+<main class="wrap">
+<div class="note"><strong>資料提醒：</strong>本頁只整理來源檔案實際列出的 65 筆股票。原始檔標示「觀察」類尚有 208 檔未展開，因此不是完整名單。除「進場」外，其他狀態不代表可直接買進；資料日期為 2026/10/27，交易前請重新核對最新行情。</div>
+<section class="stats" id="stats"></section>
+<section class="controls">
+<input id="search" placeholder="搜尋股票代號或名稱，例如 6218、豪勉">
+<select id="status"><option value="">所有狀態</option><option>進場</option><option>R不足</option><option>觀察</option><option>停損過寬</option></select>
+<select id="sort"><option value="R1">依 R1 由高至低</option><option value="R2">依 R2 由高至低</option><option value="每張風險(元)">每張風險由高至低</option><option value="收盤價">收盤價由高至低</option><option value="法人5日(張)">法人5日買超由高至低</option></select>
+<button id="reset">重設</button>
 </section>
-
-<section class="card" id="out"><div class="empty">輸入外周長後，這裡會顯示外徑、管徑規格與可能的壁厚。</div></section>
-<section class="card" id="tbl" hidden></section>
-
-<p class="note">標準表值為標稱壁厚（製造公差約 −12.5%）。SGP 依 JIS G3452，125A～300A 的外徑與 ASME 不同。大口徑捲板管常為非標準外徑，以實測外徑為準。夾式流量計請以 UT 實測壁厚輸入主機。</p>
+<section class="tablebox"><div class="tablehead" id="count"></div><div class="scroll"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div></section>
+<div class="foot">操作方式：可用搜尋框找股票、用狀態下拉選單篩選，或點擊表頭排序。R1/R2 為來源檔提供的風險報酬比。此頁僅供資料整理與研究，不構成投資建議。</div>
 </main>
 <script>
-// [label, wall mm]；STD/40 等同值合併顯示
-const P=[
-{n:'2"',od:60.3,s:[['10',2.77],['STD/40',3.91],['XS/80',5.54],['160',8.74]]},
-{n:'2.5"',od:73.0,s:[['10',3.05],['STD/40',5.16],['XS/80',7.01],['160',9.53]]},
-{n:'3"',od:88.9,s:[['10',3.05],['STD/40',5.49],['XS/80',7.62],['160',11.13]]},
-{n:'4"',od:114.3,s:[['10',3.05],['STD/40',6.02],['XS/80',8.56],['120',11.13],['160',13.49]]},
-{n:'5"',od:141.3,s:[['10',3.40],['STD/40',6.55],['XS/80',9.53],['120',12.70],['160',15.88]]},
-{n:'6"',od:168.3,s:[['10',3.40],['STD/40',7.11],['XS/80',10.97],['120',14.27],['160',18.26]]},
-{n:'8"',od:219.1,s:[['10',3.76],['20',6.35],['30',7.04],['STD/40',8.18],['60',10.31],['XS/80',12.70],['100',15.09],['120',18.26],['140',20.62],['160',23.01]]},
-{n:'10"',od:273.1,s:[['10',4.19],['20',6.35],['30',7.80],['STD/40',9.27],['XS/60',12.70],['80',15.09],['100',18.26],['120',21.44],['140',25.40],['160',28.58]]},
-{n:'12"',od:323.9,s:[['10',4.57],['20',6.35],['30',8.38],['STD',9.53],['40',10.31],['XS',12.70],['60',14.27],['80',17.48],['100',21.44],['120',25.40],['140',28.58],['160',33.32]]},
-{n:'14"',od:355.6,s:[['10',6.35],['20',7.92],['STD/30',9.53],['40',11.13],['XS',12.70],['60',15.09],['80',19.05],['100',23.83],['120',27.76],['140',31.75],['160',35.71]]},
-{n:'16"',od:406.4,s:[['10',6.35],['20',7.92],['STD/30',9.53],['XS/40',12.70],['60',16.66],['80',21.44],['100',26.19],['120',30.96],['140',36.53],['160',40.49]]},
-{n:'18"',od:457.2,s:[['10',6.35],['20',7.92],['STD',9.53],['30',11.13],['XS',12.70],['40',14.27],['60',19.05],['80',23.83],['100',29.36],['120',34.93],['140',39.67],['160',45.24]]},
-{n:'20"',od:508.0,s:[['10',6.35],['STD/20',9.53],['XS/30',12.70],['40',15.09],['60',20.62],['80',26.19],['100',32.54],['120',38.10],['140',44.45],['160',50.01]]},
-{n:'24"',od:609.6,s:[['10',6.35],['STD/20',9.53],['XS',12.70],['30',14.27],['40',17.48],['60',24.61],['80',30.96],['100',38.89],['120',46.02],['140',52.37],['160',59.54]]},
-{n:'30"',od:762.0,s:[['10',7.92],['STD',9.53],['XS/20',12.70],['30',15.88]]},
-{n:'36"',od:914.4,s:[['10',7.92],['STD',9.53],['XS/20',12.70],['30',15.88],['40',19.05]]}
-];
-const SGPD=[['6A (1/8")',10.5,2.0],['8A (1/4")',13.8,2.3],['10A (3/8")',17.3,2.3],['15A (1/2")',21.7,2.8],['20A (3/4")',27.2,2.8],['25A (1")',34.0,3.2],['32A (1-1/4")',42.7,3.5],['40A (1-1/2")',48.6,3.5],['50A (2")',60.5,3.8],['65A (2-1/2")',76.3,4.2],['80A (3")',89.1,4.2],['90A (3-1/2")',101.6,4.2],['100A (4")',114.3,4.5],['125A (5")',139.8,4.5],['150A (6")',165.2,5.0],['175A (7")',190.7,5.3],['200A (8")',216.3,5.8],['225A (9")',241.8,6.2],['250A (10")',267.4,6.6],['300A (12")',318.5,6.9],['350A (14")',355.6,7.9],['400A (16")',406.4,7.9],['450A (18")',457.2,7.9],['500A (20")',508.0,7.9],['550A (22")',558.8,8.7],['600A (24")',609.6,9.5]];
-const $=id=>document.getElementById(id);
-const sl=x=>x==='SGP'?'SGP':'SCH '+x;
-function cur(){return $('mode').value==='asme'?P.map(p=>({...p,n:'NPS '+p.n})):SGPD.map(([n,od,t])=>({n,od,s:[['SGP',t]]}))}
-const num=id=>{const v=parseFloat($(id).value);return isNaN(v)?NaN:v};
-let selKey=null;
-
+const data = [{"R1排名": 1, "狀態": "觀察", "代號": "6218", "名稱": "豪勉", "收盤價": 48.15, "停損價": 46.67, "第一目標T1": 56.73, "R1": 5.8, "第二目標T2": 69.0, "R2": 14.1, "每張風險(元)": 1476, "DIF%": "-4%", "RSI": 41.1, "K/D": "10/16", "週線": "多", "法人5日(張)": 113}, {"R1排名": 2, "狀態": "觀察", "代號": "6670", "名稱": "復盛應用", "收盤價": 260.5, "停損價": 258.95, "第一目標T1": 269.48, "R1": 5.8, "第二目標T2": 280.0, "R2": 12.6, "每張風險(元)": 1554, "DIF%": "-30%", "RSI": 38.0, "K/D": "10/17", "週線": "多", "法人5日(張)": -579}, {"R1排名": 3, "狀態": "觀察", "代號": "5314", "名稱": "世紀*", "收盤價": 24.1, "停損價": 23.69, "第一目標T1": 26.45, "R1": 5.7, "第二目標T2": 46.72, "R2": 55.4, "每張風險(元)": 408, "DIF%": "-18%", "RSI": 39.6, "K/D": "19/27", "週線": "多", "法人5日(張)": -7177}, {"R1排名": 4, "狀態": "觀察", "代號": "2605", "名稱": "新興", "收盤價": 33.85, "停損價": 33.53, "第一目標T1": 35.08, "R1": 3.9, "第二目標T2": 38.15, "R2": 13.6, "每張風險(元)": 317, "DIF%": "-11%", "RSI": 35.9, "K/D": "10/22", "週線": "多", "法人5日(張)": -4078}, {"R1排名": 5, "狀態": "觀察", "代號": "3324", "名稱": "雙鴻", "收盤價": 1335.0, "停損價": 1280.86, "第一目標T1": 1490.25, "R1": 2.9, "第二目標T2": 1750.0, "R2": 7.7, "每張風險(元)": 54143, "DIF%": "-3%", "RSI": 41.5, "K/D": "19/24", "週線": "多", "法人5日(張)": 368}, {"R1排名": 6, "狀態": "觀察", "代號": "3008", "名稱": "大立光", "收盤價": 6000.0, "停損價": 5826.39, "第一目標T1": 6451.76, "R1": 2.6, "第二目標T2": 7995.03, "R2": 11.5, "每張風險(元)": 173607, "DIF%": "-3%", "RSI": 43.2, "K/D": "13/25", "週線": "多", "法人5日(張)": -259}, {"R1排名": 7, "狀態": "觀察", "代號": "2301", "名稱": "光寶科", "收盤價": 252.5, "停損價": 244.4, "第一目標T1": 273.85, "R1": 2.6, "第二目標T2": 328.0, "R2": 9.3, "每張風險(元)": 8100, "DIF%": "-29%", "RSI": 34.4, "K/D": "13/17", "週線": "多", "法人5日(張)": 429}, {"R1排名": 8, "狀態": "停損過寬", "代號": "5013", "名稱": "強新", "收盤價": 47.15, "停損價": 42.06, "第一目標T1": 58.6, "R1": 2.2, "第二目標T2": 58.6, "R2": 2.2, "每張風險(元)": 5094, "DIF%": "+69%", "RSI": 56.9, "K/D": "52/52", "週線": "多", "法人5日(張)": 160}, {"R1排名": 9, "狀態": "觀察", "代號": "4939", "名稱": "亞電", "收盤價": 70.0, "停損價": 68.07, "第一目標T1": 73.61, "R1": 1.9, "第二目標T2": 85.0, "R2": 7.8, "每張風險(元)": 1928, "DIF%": "-10%", "RSI": 41.7, "K/D": "29/44", "週線": "多", "法人5日(張)": -1767}, {"R1排名": 10, "狀態": "停損過寬", "代號": "5465", "名稱": "富驊", "收盤價": 37.65, "停損價": 33.44, "第一目標T1": 45.35, "R1": 1.8, "第二目標T2": 45.35, "R2": 1.8, "每張風險(元)": 4213, "DIF%": "+94%", "RSI": 62.2, "K/D": "62/67", "週線": "多", "法人5日(張)": -71}, {"R1排名": 11, "狀態": "進場", "代號": "2887", "名稱": "台新新光金", "收盤價": 42.2, "停損價": 40.56, "第一目標T1": 44.8, "R1": 1.6, "第二目標T2": 44.8, "R2": 1.6, "每張風險(元)": 1640, "DIF%": "+13%", "RSI": 53.0, "K/D": "45/46", "週線": "多", "法人5日(張)": 13968}, {"R1排名": 12, "狀態": "進場", "代號": "2883", "名稱": "凱基金", "收盤價": 38.45, "停損價": 36.9, "第一目標T1": 40.8, "R1": 1.5, "第二目標T2": 40.8, "R2": 1.5, "每張風險(元)": 1547, "DIF%": "+19%", "RSI": 54.4, "K/D": "45/48", "週線": "多", "法人5日(張)": -6374}, {"R1排名": 13, "狀態": "觀察", "代號": "3490", "名稱": "單井", "收盤價": 40.9, "停損價": 39.83, "第一目標T1": 42.39, "R1": 1.4, "第二目標T2": 51.4, "R2": 9.8, "每張風險(元)": 1067, "DIF%": "-8%", "RSI": 40.8, "K/D": "20/24", "週線": "多", "法人5日(張)": -22}, {"R1排名": 14, "狀態": "觀察", "代號": "3081", "名稱": "聯亞", "收盤價": 2500.0, "停損價": 2302.11, "第一目標T1": 2720.67, "R1": 1.1, "第二目標T2": 3600.0, "R2": 5.6, "每張風險(元)": 197894, "DIF%": "-23%", "RSI": 43.5, "K/D": "19/23", "週線": "多", "法人5日(張)": 341}, {"R1排名": 15, "狀態": "觀察", "代號": "1608", "名稱": "華榮", "收盤價": 35.1, "停損價": 34.59, "第一目標T1": 35.67, "R1": 1.1, "第二目標T2": 37.6, "R2": 4.9, "每張風險(元)": 508, "DIF%": "-7%", "RSI": 43.2, "K/D": "20/29", "週線": "多", "法人5日(張)": -622}, {"R1排名": 16, "狀態": "停損過寬", "代號": "2221", "名稱": "大甲", "收盤價": 132.0, "停損價": 106.29, "第一目標T1": 159.0, "R1": 1.1, "第二目標T2": 198.0, "R2": 2.6, "每張風險(元)": 25707, "DIF%": "+6%", "RSI": 47.5, "K/D": "31/25", "週線": "多", "法人5日(張)": 274}, {"R1排名": 17, "狀態": "觀察", "代號": "6603", "名稱": "富強鑫", "收盤價": 26.85, "停損價": 25.7, "第一目標T1": 28.03, "R1": 1.0, "第二目標T2": 31.45, "R2": 4.0, "每張風險(元)": 1148, "DIF%": "-3%", "RSI": 47.0, "K/D": "18/19", "週線": "多", "法人5日(張)": 174}, {"R1排名": 18, "狀態": "進場", "代號": "5269", "名稱": "祥碩", "收盤價": 1495.0, "停損價": 1415.54, "第一目標T1": 1575.0, "R1": 1.0, "第二目標T2": 1575.0, "R2": 1.0, "每張風險(元)": 79464, "DIF%": "+18%", "RSI": 54.1, "K/D": "38/39", "週線": "多", "法人5日(張)": 217}, {"R1排名": 19, "狀態": "觀察", "代號": "6227", "名稱": "茂綸", "收盤價": 120.5, "停損價": 117.82, "第一目標T1": 122.93, "R1": 0.9, "第二目標T2": 151.5, "R2": 11.6, "每張風險(元)": 2682, "DIF%": "-15%", "RSI": 40.6, "K/D": "7/10", "週線": "多", "法人5日(張)": -44}, {"R1排名": 20, "狀態": "觀察", "代號": "2351", "名稱": "順德", "收盤價": 198.5, "停損價": 190.56, "第一目標T1": 205.25, "R1": 0.9, "第二目標T2": 257.0, "R2": 7.4, "每張風險(元)": 7936, "DIF%": "-31%", "RSI": 40.9, "K/D": "22/23", "週線": "多", "法人5日(張)": -224}, {"R1排名": 21, "狀態": "R不足", "代號": "2634", "名稱": "漢翔", "收盤價": 61.2, "停損價": 59.67, "第一目標T1": 62.65, "R1": 0.9, "第二目標T2": 67.0, "R2": 3.8, "每張風險(元)": 1531, "DIF%": "-21%", "RSI": 43.5, "K/D": "28/24", "週線": "多", "法人5日(張)": 4403}, {"R1排名": 22, "狀態": "觀察", "代號": "2606", "名稱": "裕民", "收盤價": 73.0, "停損價": 71.02, "第一目標T1": 74.87, "R1": 0.9, "第二目標T2": 79.3, "R2": 3.2, "每張風險(元)": 1979, "DIF%": "-11%", "RSI": 43.7, "K/D": "15/22", "週線": "多", "法人5日(張)": -1439}, {"R1排名": 23, "狀態": "停損過寬", "代號": "6173", "名稱": "信昌電", "收盤價": 277.0, "停損價": 240.17, "第一目標T1": 308.56, "R1": 0.9, "第二目標T2": 351.4, "R2": 2.0, "每張風險(元)": 36831, "DIF%": "+4%", "RSI": 45.8, "K/D": "31/28", "週線": "多", "法人5日(張)": 1791}, {"R1排名": 24, "狀態": "觀察", "代號": "2421", "名稱": "建準", "收盤價": 154.0, "停損價": 149.23, "第一目標T1": 157.79, "R1": 0.8, "第二目標T2": 184.0, "R2": 6.3, "每張風險(元)": 4768, "DIF%": "-15%", "RSI": 39.1, "K/D": "13/20", "週線": "多", "法人5日(張)": -713}, {"R1排名": 25, "狀態": "R不足", "代號": "2061", "名稱": "風青", "收盤價": 58.7, "停損價": 54.6, "第一目標T1": 62.11, "R1": 0.8, "第二目標T2": 71.8, "R2": 3.2, "每張風險(元)": 4102, "DIF%": "+10%", "RSI": 48.3, "K/D": "17/21", "週線": "空", "法人5日(張)": -257}, {"R1排名": 26, "狀態": "R不足", "代號": "2882", "名稱": "國泰金", "收盤價": 114.0, "停損價": 109.04, "第一目標T1": 118.0, "R1": 0.8, "第二目標T2": 118.0, "R2": 0.8, "每張風險(元)": 4964, "DIF%": "+15%", "RSI": 55.1, "K/D": "47/51", "週線": "多", "法人5日(張)": 8945}, {"R1排名": 27, "狀態": "停損過寬", "代號": "4770", "名稱": "上品", "收盤價": 291.0, "停損價": 258.36, "第一目標T1": 316.0, "R1": 0.8, "第二目標T2": 316.0, "R2": 0.8, "每張風險(元)": 32639, "DIF%": "+78%", "RSI": 59.0, "K/D": "58/54", "週線": "多", "法人5日(張)": 1126}, {"R1排名": 28, "狀態": "觀察", "代號": "2426", "名稱": "鼎元", "收盤價": 86.3, "停損價": 84.29, "第一目標T1": 87.71, "R1": 0.7, "第二目標T2": 118.0, "R2": 15.8, "每張風險(元)": 2011, "DIF%": "-17%", "RSI": 40.9, "K/D": "7/12", "週線": "多", "法人5日(張)": -2321}, {"R1排名": 29, "狀態": "觀察", "代號": "3234", "名稱": "光環", "收盤價": 169.5, "停損價": 157.89, "第一目標T1": 178.05, "R1": 0.7, "第二目標T2": 203.0, "R2": 2.9, "每張風險(元)": 11614, "DIF%": "+6%", "RSI": 46.0, "K/D": "40/48", "週線": "多", "法人5日(張)": -176}, {"R1排名": 30, "狀態": "停損過寬", "代號": "6148", "名稱": "驊宏資", "收盤價": 43.0, "停損價": 38.02, "第一目標T1": 46.45, "R1": 0.7, "第二目標T2": 46.45, "R2": 0.7, "每張風險(元)": 4985, "DIF%": "+76%", "RSI": 64.3, "K/D": "65/56", "週線": "多", "法人5日(張)": -418}, {"R1排名": 31, "狀態": "觀察", "代號": "2330", "名稱": "台積電", "收盤價": 2400.0, "停損價": 2368.0, "第一目標T1": 2419.41, "R1": 0.6, "第二目標T2": 2590.0, "R2": 5.9, "每張風險(元)": 32000, "DIF%": "-17%", "RSI": 41.1, "K/D": "11/16", "週線": "多", "法人5日(張)": -26212}, {"R1排名": 32, "狀態": "R不足", "代號": "6141", "名稱": "柏承", "收盤價": 51.3, "停損價": 48.4, "第一目標T1": 52.94, "R1": 0.6, "第二目標T2": 64.2, "R2": 4.5, "每張風險(元)": 2898, "DIF%": "+20%", "RSI": 48.4, "K/D": "30/46", "週線": "多", "法人5日(張)": -1628}, {"R1排名": 33, "狀態": "觀察", "代號": "4763", "名稱": "材料*-KY", "收盤價": 46.05, "停損價": 44.96, "第一目標T1": 46.66, "R1": 0.6, "第二目標T2": 49.2, "R2": 2.9, "每張風險(元)": 1089, "DIF%": "-9%", "RSI": 47.2, "K/D": "25/28", "週線": "多", "法人5日(張)": -2124}, {"R1排名": 34, "狀態": "停損過寬", "代號": "6456", "名稱": "GIS-KY", "收盤價": 97.8, "停損價": 80.91, "第一目標T1": 108.0, "R1": 0.6, "第二目標T2": 108.0, "R2": 0.6, "每張風險(元)": 16885, "DIF%": "+63%", "RSI": 60.4, "K/D": "53/45", "週線": "多", "法人5日(張)": 9117}, {"R1排名": 35, "狀態": "觀察", "代號": "5483", "名稱": "中美晶", "收盤價": 184.5, "停損價": 180.12, "第一目標T1": 186.84, "R1": 0.5, "第二目標T2": 229.5, "R2": 10.3, "每張風險(元)": 4375, "DIF%": "-0%", "RSI": 42.1, "K/D": "12/21", "週線": "多", "法人5日(張)": -3025}, {"R1排名": 36, "狀態": "R不足", "代號": "3264", "名稱": "欣銓", "收盤價": 248.0, "停損價": 236.42, "第一目標T1": 253.85, "R1": 0.5, "第二目標T2": 291.5, "R2": 3.8, "每張風險(元)": 11578, "DIF%": "+34%", "RSI": 48.8, "K/D": "24/35", "週線": "多", "法人5日(張)": 218}, {"R1排名": 37, "狀態": "觀察", "代號": "9105", "名稱": "泰金寶-DR", "收盤價": 8.55, "停損價": 8.18, "第一目標T1": 8.74, "R1": 0.5, "第二目標T2": 9.56, "R2": 2.8, "每張風險(元)": 365, "DIF%": "+6%", "RSI": 46.2, "K/D": "22/39", "週線": "中性", "法人5日(張)": -10288}, {"R1排名": 38, "狀態": "停損過寬", "代號": "6902", "名稱": "GOGOLOOK", "收盤價": 166.0, "停損價": 132.64, "第一目標T1": 183.0, "R1": 0.5, "第二目標T2": 183.0, "R2": 0.5, "每張風險(元)": 33357, "DIF%": "+36%", "RSI": 68.0, "K/D": "77/58", "週線": "多", "法人5日(張)": 243}, {"R1排名": 39, "狀態": "R不足", "代號": "2103", "名稱": "台橡", "收盤價": 28.25, "停損價": 27.68, "第一目標T1": 28.46, "R1": 0.4, "第二目標T2": 32.0, "R2": 6.6, "每張風險(元)": 566, "DIF%": "+20%", "RSI": 50.9, "K/D": "12/19", "週線": "多", "法人5日(張)": -464}, {"R1排名": 40, "狀態": "觀察", "代號": "8932", "名稱": "智通*", "收盤價": 87.6, "停損價": 85.28, "第一目標T1": 88.44, "R1": 0.4, "第二目標T2": 99.0, "R2": 4.9, "每張風險(元)": 2318, "DIF%": "-12%", "RSI": 42.8, "K/D": "22/26", "週線": "多", "法人5日(張)": 1153}, {"R1排名": 41, "狀態": "觀察", "代號": "6617", "名稱": "共信-KY", "收盤價": 115.5, "停損價": 113.18, "第一目標T1": 116.21, "R1": 0.3, "第二目標T2": 149.0, "R2": 14.4, "每張風險(元)": 2321, "DIF%": "-21%", "RSI": 42.9, "K/D": "30/31", "週線": "多", "法人5日(張)": -51}, {"R1排名": 42, "狀態": "觀察", "代號": "3026", "名稱": "禾伸堂", "收盤價": 706.0, "停損價": 684.71, "第一目標T1": 712.02, "R1": 0.3, "第二目標T2": 888.0, "R2": 8.6, "每張風險(元)": 21286, "DIF%": "+1%", "RSI": 42.2, "K/D": "22/30", "週線": "多", "法人5日(張)": 724}, {"R1排名": 43, "狀態": "觀察", "代號": "2455", "名稱": "全新", "收盤價": 466.0, "停損價": 447.92, "第一目標T1": 470.53, "R1": 0.3, "第二目標T2": 613.0, "R2": 8.1, "每張風險(元)": 18082, "DIF%": "-21%", "RSI": 39.1, "K/D": "15/19", "週線": "多", "法人5日(張)": -1225}, {"R1排名": 44, "狀態": "觀察", "代號": "1605", "名稱": "華新", "收盤價": 37.05, "停損價": 36.19, "第一目標T1": 37.3, "R1": 0.3, "第二目標T2": 41.1, "R2": 4.7, "每張風險(元)": 860, "DIF%": "-4%", "RSI": 45.7, "K/D": "15/25", "週線": "多", "法人5日(張)": -11024}, {"R1排名": 45, "狀態": "觀察", "代號": "2354", "名稱": "鴻準", "收盤價": 62.1, "停損價": 60.4, "第一目標T1": 62.67, "R1": 0.3, "第二目標T2": 69.5, "R2": 4.3, "每張風險(元)": 1704, "DIF%": "-25%", "RSI": 45.4, "K/D": "43/36", "週線": "多", "法人5日(張)": 3487}, {"R1排名": 46, "狀態": "觀察", "代號": "6117", "名稱": "迎廣", "收盤價": 64.6, "停損價": 60.38, "第一目標T1": 65.93, "R1": 0.3, "第二目標T2": 78.2, "R2": 3.2, "每張風險(元)": 4224, "DIF%": "+33%", "RSI": 47.0, "K/D": "17/30", "週線": "空", "法人5日(張)": 189}, {"R1排名": 47, "狀態": "停損過寬", "代號": "2464", "名稱": "盟立", "收盤價": 177.0, "停損價": 157.65, "第一目標T1": 182.1, "R1": 0.3, "第二目標T2": 224.0, "R2": 2.4, "每張風險(元)": 19354, "DIF%": "-21%", "RSI": 47.0, "K/D": "22/17", "週線": "多", "法人5日(張)": 2088}, {"R1排名": 48, "狀態": "R不足", "代號": "3693", "名稱": "營邦", "收盤價": 687.0, "停損價": 632.6, "第一目標T1": 705.7, "R1": 0.3, "第二目標T2": 789.0, "R2": 1.9, "每張風險(元)": 54400, "DIF%": "+22%", "RSI": 49.8, "K/D": "32/39", "週線": "多", "法人5日(張)": -485}, {"R1排名": 49, "狀態": "R不足", "代號": "2881", "名稱": "富邦金", "收盤價": 162.0, "停損價": 152.18, "第一目標T1": 164.5, "R1": 0.3, "第二目標T2": 164.5, "R2": 0.3, "每張風險(元)": 9818, "DIF%": "+34%", "RSI": 63.1, "K/D": "59/59", "週線": "多", "法人5日(張)": 6451}, {"R1排名": 50, "狀態": "停損過寬", "代號": "3498", "名稱": "陽程", "收盤價": 252.0, "停損價": 219.64, "第一目標T1": 260.5, "R1": 0.3, "第二目標T2": 260.5, "R2": 0.3, "每張風險(元)": 32357, "DIF%": "+56%", "RSI": 63.9, "K/D": "61/57", "週線": "多", "法人5日(張)": 445}, {"R1排名": 51, "狀態": "R不足", "代號": "2357", "名稱": "華碩", "收盤價": 967.0, "停損價": 936.85, "第一目標T1": 974.5, "R1": 0.2, "第二目標T2": 1030.0, "R2": 2.1, "每張風險(元)": 30150, "DIF%": "+8%", "RSI": 50.2, "K/D": "36/43", "週線": "多", "法人5日(張)": -458}, {"R1排名": 52, "狀態": "停損過寬", "代號": "2069", "名稱": "運錩", "收盤價": 28.85, "停損價": 23.86, "第一目標T1": 30.05, "R1": 0.2, "第二目標T2": 30.05, "R2": 0.2, "每張風險(元)": 4993, "DIF%": "+74%", "RSI": 71.3, "K/D": "72/56", "週線": "多", "法人5日(張)": 1175}, {"R1排名": 53, "狀態": "觀察", "代號": "3017", "名稱": "奇鋐", "收盤價": 3130.0, "停損價": 2991.39, "第一目標T1": 3145.2, "R1": 0.1, "第二目標T2": 3700.0, "R2": 4.1, "每張風險(元)": 138607, "DIF%": "-10%", "RSI": 42.8, "K/D": "28/32", "週線": "多", "法人5日(張)": -251}, {"R1排名": 54, "狀態": "R不足", "代號": "2207", "名稱": "和泰車", "收盤價": 551.0, "停損價": 520.42, "第一目標T1": 553.0, "R1": 0.1, "第二目標T2": 553.0, "R2": 0.1, "每張風險(元)": 30579, "DIF%": "+32%", "RSI": 62.0, "K/D": "65/64", "週線": "多", "法人5日(張)": 314}, {"R1排名": 55, "狀態": "停損過寬", "代號": "1808", "名稱": "潤隆", "收盤價": 36.8, "停損價": 33.44, "第一目標T1": 37.2, "R1": 0.1, "第二目標T2": 37.2, "R2": 0.1, "每張風險(元)": 3360, "DIF%": "+72%", "RSI": 68.8, "K/D": "70/69", "週線": "多", "法人5日(張)": 7872}, {"R1排名": 56, "狀態": "停損過寬", "代號": "3005", "名稱": "神基", "收盤價": 126.5, "停損價": 118.22, "第一目標T1": 127.5, "R1": 0.1, "第二目標T2": 127.5, "R2": 0.1, "每張風險(元)": 8282, "DIF%": "+74%", "RSI": 72.2, "K/D": "82/77", "週線": "多", "法人5日(張)": 4884}, {"R1排名": 57, "狀態": "停損過寬", "代號": "3406", "名稱": "玉晶光", "收盤價": 1210.0, "停損價": 974.06, "第一目標T1": 1245.0, "R1": 0.1, "第二目標T2": 1245.0, "R2": 0.1, "每張風險(元)": 235942, "DIF%": "+50%", "RSI": 65.6, "K/D": "65/58", "週線": "多", "法人5日(張)": -1441}, {"R1排名": 58, "狀態": "停損過寬", "代號": "3055", "名稱": "蔚華科", "收盤價": 146.5, "停損價": 122.94, "第一目標T1": 147.31, "R1": 0.0, "第二目標T2": 227.5, "R2": 3.4, "每張風險(元)": 23561, "DIF%": "-28%", "RSI": 39.8, "K/D": "25/22", "週線": "多", "法人5日(張)": 556}, {"R1排名": 59, "狀態": "R不足", "代號": "3702", "名稱": "大聯大", "收盤價": 116.5, "停損價": 110.39, "第一目標T1": 116.6, "R1": 0.0, "第二目標T2": 122.0, "R2": 0.9, "每張風險(元)": 6114, "DIF%": "+20%", "RSI": 54.8, "K/D": "36/35", "週線": "多", "法人5日(張)": 9225}, {"R1排名": 60, "狀態": "停損過寬", "代號": "3374", "名稱": "精材", "收盤價": 463.5, "停損價": 387.18, "第一目標T1": 466.47, "R1": 0.0, "第二目標T2": 530.0, "R2": 0.9, "每張風險(元)": 76318, "DIF%": "+18%", "RSI": 52.7, "K/D": "50/43", "週線": "多", "法人5日(張)": 3322}, {"R1排名": 61, "狀態": "停損過寬", "代號": "3029", "名稱": "零壹", "收盤價": 129.0, "停損價": 114.79, "第一目標T1": 129.5, "R1": 0.0, "第二目標T2": 129.5, "R2": 0.0, "每張風險(元)": 14211, "DIF%": "+63%", "RSI": 68.1, "K/D": "79/70", "週線": "多", "法人5日(張)": 979}, {"R1排名": 62, "狀態": "停損過寬", "代號": "6199", "名稱": "天品", "收盤價": 153.0, "停損價": 132.88, "第一目標T1": 153.5, "R1": 0.0, "第二目標T2": 153.5, "R2": 0.0, "每張風險(元)": 20118, "DIF%": "+90%", "RSI": 79.7, "K/D": "80/73", "週線": "多", "法人5日(張)": -186}, {"R1排名": 63, "狀態": "停損過寬", "代號": "6245", "名稱": "立端", "收盤價": 98.3, "停損價": 85.85, "第一目標T1": 98.4, "R1": 0.0, "第二目標T2": 98.4, "R2": 0.0, "每張風險(元)": 12446, "DIF%": "+84%", "RSI": 76.4, "K/D": "80/72", "週線": "多", "法人5日(張)": 801}, {"R1排名": 64, "狀態": "停損過寬", "代號": "6870", "名稱": "騰雲", "收盤價": 356.0, "停損價": 282.32, "第一目標T1": 358.0, "R1": 0.0, "第二目標T2": 358.0, "R2": 0.0, "每張風險(元)": 73679, "DIF%": "+46%", "RSI": 65.0, "K/D": "78/60", "週線": "多", "法人5日(張)": 1}, {"R1排名": 65, "狀態": "停損過寬", "代號": "6221", "名稱": "晉泰", "收盤價": 40.0, "停損價": 32.36, "第一目標T1": NaN, "R1": NaN, "第二目標T2": NaN, "R2": NaN, "每張風險(元)": 7635, "DIF%": "+91%", "RSI": 72.5, "K/D": "75/65", "週線": "多", "法人5日(張)": 862}];
+const columns = ["R1排名", "狀態", "代號", "名稱", "收盤價", "停損價", "第一目標T1", "R1", "第二目標T2", "R2", "每張風險(元)", "DIF%", "RSI", "K/D", "週線", "法人5日(張)"];
+const fmt = v => v===null || v===undefined || v==="" ? "—" : (typeof v==="number" ? v.toLocaleString("zh-TW",{maximumFractionDigits:2}) : String(v));
+let sortKey="R1", desc=true;
+const statsEl=document.getElementById("stats");
+const counts={}; data.forEach(r=>counts[r["狀態"]]=(counts[r["狀態"]]||0)+1);
+statsEl.innerHTML=[["列出股票",data.length+" 檔"],["進場",counts["進場"]||0],["觀察",counts["觀察"]||0],["其他狀態",(counts["R不足"]||0)+(counts["停損過寬"]||0)]].map(([a,b])=>`<div class="stat"><small>${a}</small><strong>${b}</strong></div>`).join("");
+const th=document.getElementById("thead");
+th.innerHTML=columns.map(c=>`<th data-key="${c}">${c} ↕</th>`).join("");
+th.querySelectorAll("th").forEach(el=>el.addEventListener("click",()=>{if(sortKey===el.dataset.key)desc=!desc;else{sortKey=el.dataset.key;desc=true}document.getElementById("sort").value=["R1","R2","每張風險(元)","收盤價","法人5日(張)"].includes(sortKey)?sortKey:"R1";render()}));
 function render(){
-  const C=num('c'),coat=num('coat')||0,scale=num('scale')||0,ut=num('ut');
-  const out=$('out'),tbl=$('tbl');
-  if(!(C>0)){out.innerHTML='<div class="empty">輸入外周長後，這裡會顯示外徑、管徑規格與可能的壁厚。</div>';tbl.hidden=true;return}
-  const odm=C/Math.PI-2*coat;
-  if(!(odm>0)){out.innerHTML='<div class="empty">外覆層厚度過大，請檢查輸入。</div>';tbl.hidden=true;return}
-  let best=null;
-  for(const p of cur()){const d=(odm-p.od)/p.od*100;if(!best||Math.abs(d)<Math.abs(best.d))best={p,d}}
-  const p=best.p,dev=best.d,ad=Math.abs(dev);
-  const lvl=ad<=0.5?'ok':ad<=1?'warn':'bad';
-  const msg={ok:'符合標準外徑',warn:'接近標準外徑，可能含公差或橢圓度',bad:'偏離標準外徑，可能為捲板管或非標管'}[lvl];
-  const odUse=ad<=1?p.od:odm; // 吻合標準時採標稱外徑
-  // 預設列
-  if(!selKey||!selKey.startsWith(p.n+'|')){const d=p.s.find(r=>r[0].includes('STD'))||p.s[1]||p.s[0];selKey=p.n+'|'+d[0]}
-  const rows=p.s;
-  let t,src,nearIdx=-1;
-  if(ut>0){t=ut;src='輸入壁厚';let m=1e9;rows.forEach((r,i)=>{const d=Math.abs(r[1]-ut);if(d<m){m=d;nearIdx=i}})}
-  else{const r=rows.find(r=>p.n+'|'+r[0]===selKey)||rows[0];t=r[1];src='表列 '+sl(r[0])}
-  const idOf=w=>odUse-2*w-2*scale;
-  const area=w=>{const d=idOf(w);return d>0?Math.PI/4*d*d/100:NaN};
-  const id=idOf(t),A=area(t);
-  if(!(id>0)){out.innerHTML='<div class="empty">壁厚與垢層合計超過半徑，請檢查輸入。</div>';tbl.hidden=true;return}
-  // 鄰近壁厚的截面積差
-  const ts=[...new Set(rows.map(r=>r[1]))].sort((a,b)=>a-b);
-  const lo=[...ts].reverse().find(x=>x<t-0.005),hi=ts.find(x=>x>t+0.005);
-  const pc=w=>{const a=area(w);return isNaN(a)?'—':((a/A-1)*100>=0?'+':'−')+Math.abs((a/A-1)*100).toFixed(1)+'%'};
-  const nearTxt=ut>0?`最接近 ${sl(rows[nearIdx][0])}（${rows[nearIdx][1].toFixed(2)} mm），差 ${Math.abs(rows[nearIdx][1]-ut).toFixed(2)} mm`:'';
-  // 剖面圖
-  const R=odUse/2,k=54/R,rid=Math.max((R-t)*k,0),rs=Math.max((R-t-scale)*k,0);
-  const svg=`<svg viewBox="0 0 120 120" role="img" aria-label="管剖面示意"><circle cx="60" cy="60" r="54" fill="var(--wall)"/><circle cx="60" cy="60" r="${rid.toFixed(2)}" fill="${scale>0?'var(--scale)':'var(--water)'}"/>${scale>0?`<circle cx="60" cy="60" r="${rs.toFixed(2)}" fill="var(--water)"/>`:''}</svg>`;
-  out.innerHTML=`<div class="read">${svg}<div>
-    <div class="big">${odm.toFixed(1)} <small>mm 外徑</small></div>
-    <div style="margin-top:6px"><span class="chip ${lvl}">${msg}</span></div>
-    <div class="note" style="margin-top:6px">最接近 ${p.n}（標稱 OD ${p.od} mm，差 ${dev>=0?'+':'−'}${ad.toFixed(2)}%）</div></div></div>
-    <dl class="kv">
-    <dt>壁厚 t</dt><dd>${t.toFixed(2)} mm（${src}）${nearTxt?'<br><span class="hint">'+nearTxt+'</span>':''}</dd>
-    <dt>內徑 ID</dt><dd>${id.toFixed(1)} mm${scale>0?'（已扣垢層 '+scale+' mm）':''}</dd>
-    <dt>流通截面積</dt><dd>${A.toFixed(1)} cm²</dd>
-    <dt>若壁厚判斷錯一級</dt><dd>${lo?`t=${lo.toFixed(2)}：${pc(lo)}`:'—'}　${hi?`t=${hi.toFixed(2)}：${pc(hi)}`:''}</dd>
-    <dt>計算採用外徑</dt><dd>${odUse.toFixed(1)} mm（${ad<=1?'標稱值':'實測值'}）</dd></dl>
-    ${lvl==='bad'?'<p class="note">外徑不在標準管表內，下表僅供參考。建議直接輸入 UT 實測壁厚。</p>':''}
-    <button class="act" id="cp">複製記錄</button>`;
-  $('cp').onclick=async()=>{
-    const s=`外周長 ${C} mm；外徑 ${odm.toFixed(1)} mm；${p.n}（${msg}）；壁厚 ${t.toFixed(2)} mm（${src}）；內徑 ${id.toFixed(1)} mm；截面積 ${A.toFixed(1)} cm²`;
-    try{await navigator.clipboard.writeText(s);$('cp').textContent='已複製'}catch(e){$('cp').textContent='無法複製，請手動記錄'}
-  };
-  // 表格
-  tbl.hidden=false;
-  tbl.innerHTML=`<h2>${p.n} 標準壁厚（OD ${p.od} mm）</h2><div class="tw"><table><thead><tr><th>SCH</th><th>壁厚 mm</th><th>內徑 mm</th><th>截面積 cm²</th><th>面積差</th></tr></thead><tbody>${
-    rows.map((r,i)=>{const a=area(r[1]);const isSel=ut>0?false:(p.n+'|'+r[0]===selKey);
-    return `<tr class="${isSel?'sel':''}${i===nearIdx?' near':''}"><td><button data-k="${p.n}|${r[0]}" aria-pressed="${isSel}">${r[0]}</button></td><td>${r[1].toFixed(2)}</td><td>${isNaN(a)?'—':idOf(r[1]).toFixed(1)}</td><td>${isNaN(a)?'—':a.toFixed(1)}</td><td>${isNaN(a)?'—':pc(r[1])}</td></tr>`}).join('')
-  }</tbody></table></div><p class="note">點選 SCH 可切換假設壁厚；「面積差」以目前壁厚為基準。</p>`;
-  tbl.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>{selKey=b.dataset.k;$('ut').value='';render()});
+ const q=document.getElementById("search").value.trim().toLowerCase(), st=document.getElementById("status").value;
+ const sk=document.getElementById("sort").value; if(sk!==sortKey){sortKey=sk;desc=true}
+ let rows=data.filter(r=>(!st||r["狀態"]===st)&&(!q||(String(r["代號"]).toLowerCase().includes(q)||String(r["名稱"]).toLowerCase().includes(q))));
+ rows.sort((a,b)=>{let av=a[sortKey],bv=b[sortKey];if(av===null||av===undefined)return 1;if(bv===null||bv===undefined)return -1;if(typeof av==="string"&&typeof bv==="string")return desc?bv.localeCompare(av,"zh-Hant"):av.localeCompare(bv,"zh-Hant");return desc?(Number(bv)-Number(av)):(Number(av)-Number(bv))});
+ document.getElementById("count").textContent=`顯示 ${rows.length} / ${data.length} 筆｜目前排序：${sortKey} ${desc?"由高至低":"由低至高"}`;
+ document.getElementById("tbody").innerHTML=rows.map(r=>`<tr>${columns.map(c=>{let v=r[c];if(c==="狀態")return `<td style="text-align:left"><span class="status ${String(v).replace(/[^\\u4e00-\\u9fa5A-Za-z0-9]/g,'')}">${v}</span></td>`;let cls=(c==="法人5日(張)"&&Number(v)>0)?"positive":(c==="法人5日(張)"&&Number(v)<0)?"negative":"";return `<td class="${cls}">${fmt(v)}</td>`}).join("")}</tr>`).join("");
 }
-['c','coat','ut','scale','mode'].forEach(i=>$(i).addEventListener('input',render));
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("status").addEventListener("change",render);
+document.getElementById("sort").addEventListener("change",()=>{sortKey=document.getElementById("sort").value;desc=true;render()});
+document.getElementById("reset").addEventListener("click",()=>{document.getElementById("search").value="";document.getElementById("status").value="";document.getElementById("sort").value="R1";sortKey="R1";desc=true;render()});
+render();
 </script>
-</body>
-</html>
+</body></html>
